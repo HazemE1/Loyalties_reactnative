@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "loyalty",
+    "slug": "loyalty",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  },
+  "name": "loyalty"
+}
