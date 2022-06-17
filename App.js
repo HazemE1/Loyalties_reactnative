@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, Text} from 'react-native';
+import {StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {Pacifico_400Regular} from '@expo-google-fonts/pacifico';
@@ -13,6 +13,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import OrgHome from "./src/screens/org/OrgHome"
 import OrgRegister from "./src/screens/org/OrgRegister"
 import OrgSelect from './src/screens/org/OrgSelect';
+import CardView from "./src/assets/components/CardView";
 
 
 import firebase from "firebase/compat/app";
@@ -43,9 +44,15 @@ try {
 
 
 function Test() {
-    return (
-        <Text></Text>
-    );
+    return (<CardView
+        bg_img={"https://besthqwallpapers.com/Uploads/14-3-2019/83327/thumb2-yellow-floral-pattern-4k-vintage-pattern-yellow-background-floral-patterns.jpg"}
+        done={3}
+        amount={10}
+        stamp_img={"https://www.onlygfx.com/wp-content/uploads/2018/04/completed-stamp-3.png"}
+        stamp_bg={"https://www.steelo.co.uk/wp-content/uploads/2018/04/Book-2-hour-delivery-slot-stamp-white-shadow2.png"}
+        title={"BOBLA"}
+        desc={"Ditt stämpelkort hos bobbla ser ut så här"}
+    /> );
 }
 
 const Stack = createNativeStackNavigator();
@@ -87,7 +94,7 @@ export default class App extends React.Component {
         return (
             <NavigationContainer>
                 <Stack.Navigator
-                    initialRouteName='login'
+                    initialRouteName='test'
                     screenOptions={{
                         headerShown: false,
 

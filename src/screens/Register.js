@@ -4,9 +4,9 @@ import {
     Alert,
     Image,
     SafeAreaView,
+    StyleSheet,
     Text,
     TextInput,
-    TouchableHighlight,
     TouchableWithoutFeedback,
     View
 } from 'react-native';
@@ -28,13 +28,15 @@ export default class Register extends Component {
         this.state = {
             name: "",
             mail: "",
-            err: "",
+            gender: "man",
+            notifications: true,
             photoUrl: "",
+
             creating: false,
             creatingMessage: "Skapar ditt konto kan ta någon minut...",
             User: null,
-            gender: "Man",
-            notifications: true,
+            screen: "1",
+            err: "",
         };
     }
 
@@ -53,8 +55,10 @@ export default class Register extends Component {
         ]);
 
 
-        if (this.state.notifications){
-
+        if (this.state.notifications) {
+            /*
+            *  TODO FRÅGA OM NOTIFIKATION TILLÅTELSE
+            */
         }
 
     }
@@ -117,25 +121,191 @@ export default class Register extends Component {
 
                 <Text>{"\n"}{this.state.creatingMessage}</Text>
             </View>)
-        else
-            return (<View style={{...styling.wrapper}}>
-                <SafeAreaView/>
-                <View style={styling.container}>
-                    <Text style={{...styling.subtitle, fontWeight: "bold"}}>Skapa konto</Text>
-                    <Text style={{...styling.text, fontStyle: "italic",}}>Mata in din information
-                        tack!</Text>
-                    <Text style={{
-                        color: "red",
-                        fontSize: 15,
-                        fontWeight: "bold",
-                        textAlign: "center"
-                    }}>{this.state.err}</Text>
 
-                    <View style={{flex: 1, alignItems: 'center', justifyContent: "center", borderTopLeftRadius: 350}}>
-                        <TouchableWithoutFeedback onPress={() => this.pickImage()} style={{flex: 1}}>
+        return (<SafeAreaView style={{...styling.wrapper}}>
+
+            <View style={styling.container}>
+                <Text style={{...styling.subtitle, fontWeight: "bold"}}>NYTT KONTO</Text>
+                <Text style={{...styling.text, fontStyle: "italic",}}>Mata in din information
+                    tack!</Text>
+                <Text style={{
+                    color: "red",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    marginTop: 5
+                }}> {this.state.err.toUpperCase()}</Text>
+
+                {this.state.screen === "1" &&
+                    <View>
+                        <Text style={{
+                            ...styling.text,
+                            ...styles.SubItalicText,
+                            margin: 10,
+                            fontSize: 30,
+                        }}>Fullständigt namn</Text>
+                        <TextInput value={this.state.name} style={{
+                            ...styling.text,
+                            ...styles.SubItalicText,
+                            margin: 5,
+                            color: "grey"
+                        }} onChangeText={(t) => this.setState({name: t})} placeholder={"FÖR-/Efternamn"}/>
+
+                        <View>
+                            <TouchableWithoutFeedback onPressIn={() => {
+                                if (this.state.name.length >= 1)
+                                    this.setState({screen: "2", err: ""})
+                                else
+                                    this.setState({err: "Viktigt att ange ett namn"})
+                            }}>
+                                <Text style={{
+                                    ...styling.text,
+                                    fontStyle: "italic",
+                                    textAlign: "right",
+                                    fontWeight: "bold",
+                                    color: "green",
+                                    margin: 5
+
+                                }}>Fortsätt</Text>
+                            </TouchableWithoutFeedback>
+                        </View>
+                    </View>
+                }
+                {this.state.screen === "2" &&
+                    <View>
+                        <Text style={{
+                            ...styling.text,
+
+                            ...styles.SubItalicText,
+                            margin: 10,
+                            fontSize: 30,
+                        }}> Din mailadress</Text>
+                        <TextInput value={this.state.mail} style={{
+                            ...styling.text,
+                            ...styles.SubItalicText,
+                            margin: 5,
+                            color: "grey"
+                        }} onChangeText={(t) => this.setState({mail: t})} placeholder={"mail@mail.se"}/>
+
+                        <View style={{display: "flex", flexDirection: "row-reverse"}}>
+                            <View>
+                                <TouchableWithoutFeedback onPressIn={() => {
+                                    if (this.state.mail === "" || !this.state.mail.includes("@") || !this.state.mail.includes(".") || this.state.mail.length < 5)
+                                        this.setState({err: "Viktigt att ange en mail"})
+                                    else
+                                        this.setState({screen: "3", err: ""})
+
+                                }}>
+                                    <Text style={{
+                                        ...styling.text,
+                                        fontStyle: "italic",
+                                        textAlign: "right",
+                                        fontWeight: "bold",
+                                        color: "green",
+                                        margin: 5
+
+                                    }}>Fortsätt</Text>
+                                </TouchableWithoutFeedback>
+                            </View>
+
+                            <View>
+                                <TouchableWithoutFeedback onPressIn={() => {
+                                    this.setState({screen: "1", err: ""})
+                                }}>
+                                    <Text style={{
+                                        ...styling.text,
+                                        fontStyle: "italic",
+                                        fontWeight: "bold",
+                                        color: "red",
+                                        margin: 5
+
+                                    }}>Backa</Text>
+                                </TouchableWithoutFeedback>
+                            </View>
+                        </View>
+                    </View>
+                }
+                {this.state.screen === "3" &&
+                    <View>
+                        <Text style={{
+                            ...styling.text,
+                            ...styles.SubItalicText,
+                            margin: 10,
+                            fontSize: 30,
+                        }}>DIN KÖN</Text>
+                        <View style={{flexDirection: "row", justifyContent: "center"}}>
+                            <TouchableWithoutFeedback onPress={() => this.genderSelector("man")}>
+                                <View style={{
+                                    ...styles.GenderSelector,
+                                    backgroundColor: this.state.gender === "man" ? "rgba(0,255,0,0.2)" : "rgba(255,0,0,0)"
+                                    }}>
+                                    <Text style={styles.GenderSelectorText}>MAN</Text>
+                                </View>
+                            </TouchableWithoutFeedback>
+                            <TouchableWithoutFeedback onPress={() => this.genderSelector("kvinna")}>
+                                <View style={{
+                                    ...styles.GenderSelector,
+                                    backgroundColor: this.state.gender === "kvinna" ? "rgba(0,255,0,0.2)" : "rgba(255,0,0,0)"
+                                }}>
+                                    <Text style={styles.GenderSelectorText}>KVINNA</Text>
+                                </View>
+                            </TouchableWithoutFeedback>
+                            <TouchableWithoutFeedback onPress={() => this.genderSelector("annat")}>
+                                <View style={{
+                                    ...styles.GenderSelector,
+                                    backgroundColor: this.state.gender === "annat" ? "rgba(0,255,0,0.2)" : "rgba(255,0,0,0)"
+                                }}>
+                                    <Text style={styles.GenderSelectorText}>ANNAT</Text>
+                                </View>
+                            </TouchableWithoutFeedback>
+                        </View>
+                        <View style={{display: "flex", flexDirection: "row-reverse"}}>
+                            <View>
+                                <TouchableWithoutFeedback onPressIn={() => {
+                                        this.setState({screen: "4", err: ""})
+                                }}>
+                                    <Text style={{
+                                        ...styling.text,
+                                        fontStyle: "italic",
+                                        textAlign: "right",
+                                        fontWeight: "bold",
+                                        color: "green",
+                                        margin: 5
+
+                                    }}>Fortsätt</Text>
+                                </TouchableWithoutFeedback>
+                            </View>
+
+                            <View>
+                                <TouchableWithoutFeedback onPressIn={() => {
+                                    this.setState({screen: "2", err: ""})
+                                }}>
+                                    <Text style={{
+                                        ...styling.text,
+                                        fontStyle: "italic",
+                                        fontWeight: "bold",
+                                        color: "red",
+                                        margin: 5
+
+                                    }}>Backa</Text>
+                                </TouchableWithoutFeedback>
+                            </View>
+                        </View>
+                    </View>
+                }
+                {this.state.screen === "4" &&
+                    <View style={{height: "50%"}}>
+                        <Text style={{
+                            ...styling.text,
+
+                            ...styles.SubItalicText,
+                            margin: 10,
+                            fontSize: 30,
+                        }}> Välj profilbild</Text>
+                        <TouchableWithoutFeedback onPress={() => this.pickImage()}
+                                                  style={{flex: 1,}}>
                             {this.state.photoUrl === "" ?
                                 <View style={{flex: 1, alignItems: "center", margin: 40, overflow: "none"}}>
-                                    <AntDesign name="user" size={70} style={{
+                                    <AntDesign name="user" size={200} style={{
                                         borderColor: getColorScheme().text_color,
                                         borderWidth: 2,
                                         borderRadius: 10,
@@ -153,8 +323,8 @@ export default class Register extends Component {
                                 <View style={{flex: 1, alignItems: "center", margin: 40, overflow: "none"}}>
                                     <Image source={{uri: this.state.photoUrl}} style={{
                                         backgroundColor: getColorScheme().first_color,
-                                        width: 90,
-                                        height: 90,
+                                        width: 200,
+                                        height: 200,
                                         borderRadius: 10,
                                         padding: 20,
                                         resizeMode: "stretch",
@@ -164,103 +334,151 @@ export default class Register extends Component {
                                         fontSize: 15,
                                         fontWeight: "bold",
                                         textAlign: "center"
-                                    }}>Välj
-                                        profilbild</Text>
+                                    }}>Välj profilbild</Text>
                                 </View>
                             }
                         </TouchableWithoutFeedback>
-                    </View>
-                    <View keyboardVerticalOffset={0} behavior={"padding"} style={{flex: 1, margin: 5}}>
+                        <View style={{display: "flex", flexDirection: "row-reverse"}}>
+                            <View>
+                                <TouchableWithoutFeedback onPressIn={() => {
+                                    if (this.state.photoUrl === ""){
+                                        this.setState({err: "Du måste välja en profilbild."})
+                                    }else {
+                                        this.setState({screen: "5", err: ""})
 
-                        <Text style={{...styling.text, fontSize: 25}}>För-/Efternamn</Text>
-                        <View style={{
-                            marginVertical: 5,
-                            justifyContent: "center",
-                            alignItems: "center", ...styling.shadow,
-                        }}>
-                            <TextInput onChangeText={(t) => {
-                                this.setState({name: t});
-                            }} value={this.state.name} placeholder='För/Efternamn'
-                                       style={{...styling.text, fontSize: 25}}/>
-                        </View>
-                        <Text style={{...styling.text, fontSize: 25}}>Mail</Text>
-                        <View style={{
-                            marginVertical: 5,
-                            justifyContent: "center",
-                            alignItems: "center", ...styling.shadow,
-                        }}>
-                            <TextInput onChangeText={(t) => {
-                                this.setState({mail: t});
-                            }} value={this.state.mail} keyboardType={"email-address"} placeholder='Din-mail@adress.se'
-                                       style={{...styling.text, fontSize: 25}}/>
-                        </View>
+                                    }
+                                }}>
+                                    <Text style={{
+                                        ...styling.text,
+                                        fontStyle: "italic",
+                                        textAlign: "right",
+                                        fontWeight: "bold",
+                                        color: "green",
+                                        margin: 5
 
-                        <Text style={{...styling.text, fontSize: 25}}>Kön</Text>
-                        <View style={{
-                            marginVertical: 5,
-                            ...styling.shadow,
-                            flexDirection: "row",
-                        }}>
-                            <TouchableHighlight onPress={() => this.genderSelector("Man")} style={{
-                                padding: 10,
-                                borderRadius: 10,
-                                borderWidth: 1,
-                                borderColor: "rgba(255,255,255,0.33)",
-                                margin: 5,
-                                backgroundColor: this.getCurrentGender() === "Man" ? "rgba(69,187,91,0.47)" : "rgba(0,0,0,0)"
-                            }}>
-                                <Text style={{...styling.text}}>MAN</Text>
-                            </TouchableHighlight>
+                                    }}>Bekräfta konto</Text>
+                                </TouchableWithoutFeedback>
+                            </View>
 
-                            <TouchableHighlight onPress={() => this.genderSelector("Kvinna")} style={{
-                                padding: 10,
-                                borderRadius: 10,
-                                borderWidth: 1,
-                                borderColor: "rgba(255,255,255,0.33)",
-                                margin: 5,
-                                backgroundColor: this.getCurrentGender() === "Kvinna" ? "rgba(69,187,91,0.47)" : "rgba(0,0,0,0)"
-                            }}>
-                                <Text style={{...styling.text}}>Kvinna</Text>
-                            </TouchableHighlight>
-                            <TouchableHighlight onPress={() => this.genderSelector("Annat")} style={{
-                                padding: 10,
-                                borderRadius: 10,
-                                borderWidth: 1,
-                                borderColor: "rgba(255,255,255,0.33)",
-                                margin: 5,
-                                backgroundColor: this.getCurrentGender() === "Annat" ? "rgba(69,187,91,0.47)" : "rgba(0,0,0,0)"
-                            }}>
-                                <Text style={{...styling.text}}>Annat</Text>
-                            </TouchableHighlight>
-                        </View>
+                            <View>
+                                <TouchableWithoutFeedback onPressIn={() => {
+                                    this.setState({screen: "3", err: ""})
+                                }}>
+                                    <Text style={{
+                                        ...styling.text,
+                                        fontStyle: "italic",
+                                        fontWeight: "bold",
+                                        color: "red",
+                                        margin: 5
 
-                        <Text style={{...styling.text, fontSize: 25}}>Telefonnummer</Text>
-                        <View style={{
-                            marginVertical: 5,
-                            ...styling.shadow,
-                        }}>
-                            <Text style={[styling.text, {
-                                textAlign: "left",
-                                color: "grey"
-                            }]}>{firebase.auth().currentUser.phoneNumber}</Text>
-
+                                    }}>Backa</Text>
+                                </TouchableWithoutFeedback>
+                            </View>
                         </View>
                     </View>
-                    <View style={{flex: 1, flexDirection: "column-reverse", alignItems: "center", ...styling.shadow}}>
-                        <TouchableHighlight underlayColor={getColorScheme().secondary_color}
-                                            onPress={() => this.createUser()} style={{
-                            ...styling.shadow,
-                            margin: 20,
-                            borderRadius: 10,
-                        }}>
+                }
 
-                            <Text style={{
-                                ...styling.text, ...styling.shadow, textAlign: "center", width: 200, padding: 20
-                            }}>REGISTRERA</Text>
-                        </TouchableHighlight>
+                {this.state.screen === "5" &&
+                    <View>
+                        <Text style={{
+                            ...styling.text,
+                            ...styles.SubItalicText,
+                            margin: 10,
+                            fontSize: 30,
+                        }}> BEKRÄFTA</Text>
+
+                        {Object.keys(this.state).map((t) => {
+                            if (t === "screen" || t === "err" || t === "creating" || t === "creatingMessage" || t === "uid" || t === "owner")
+                                return
+
+                            let variable = "";
+                            if (t === "name")
+                                variable = "Namn"
+                            else if (t === "mail")
+                                variable = "Mail"
+                            else if (t === "number")
+                                variable = "Nummer"
+                            else if (t === "description")
+                                variable = "Beskrivning"
+                            else if (t === "photoUrl")
+                                variable = "Profilbild"
+                            else if (t === "grade")
+                                variable = "Prenumeration"
+                            else if (t === "gender")
+                                variable = "Kön"
+                            if (t === "photoUrl")
+                                return <View key={t} style={{margin: 5}}>
+                                    <Text style={{
+                                        color: getColorScheme().text_color,
+                                        fontWeight: "bold",
+                                        fontSize: 20,
+                                    }}>{variable}</Text>
+                                    <Image source={{uri: this.state.photoUrl}} style={{
+                                        backgroundColor: getColorScheme().first_color,
+                                        width: 200,
+                                        height: 200,
+                                        borderRadius: 10,
+                                        padding: 20,
+                                        resizeMode: "stretch",
+                                    }}/>
+                                </View>
+
+                            return <View key={t} style={{margin: 5}}>
+                                <Text style={{
+                                    color: getColorScheme().text_color,
+                                    fontWeight: "bold",
+                                    fontSize: 20,
+                                    textAlign: "center"
+                                }}>{variable.toUpperCase()}</Text>
+                                <Text style={{
+                                    color: getColorScheme().text_color,
+
+                                    fontSize: 20,
+                                    textAlign: "center"
+                                }}>{this.state[t]}</Text>
+
+                            </View>
+
+                        })}
+
+                        <View style={{display: "flex", flexDirection: "row-reverse"}}>
+                            <View>
+                                <TouchableWithoutFeedback onPressIn={() => {
+                                    this.createUser()
+                                }}>
+                                    <Text style={{
+                                        ...styling.text,
+                                        fontStyle: "italic",
+                                        textAlign: "right",
+                                        fontWeight: "bold",
+                                        color: "green",
+                                        margin: 5
+
+                                    }}>Skapa konto</Text>
+                                </TouchableWithoutFeedback>
+                            </View>
+
+                            <View>
+                                <TouchableWithoutFeedback onPressIn={() => {
+                                    this.setState({screen: "4"})
+                                }}>
+                                    <Text style={{
+                                        ...styling.text,
+                                        fontStyle: "italic",
+                                        fontWeight: "bold",
+                                        color: "red",
+                                        margin: 5
+
+                                    }}>Backa</Text>
+                                </TouchableWithoutFeedback>
+                            </View>
+                        </View>
                     </View>
-                </View>
-            </View>);
+                }
+
+
+            </View>
+        </SafeAreaView>);
     }
 
     async createUser() {
@@ -286,7 +504,6 @@ export default class Register extends Component {
         }, 500)
         this.setState({creatingMessage: "Skapar din profil..."})
         await this.settingsConfirm();
-        this.setState({creating: true})
         await firebase.auth().currentUser.updateEmail(this.state.mail);
         await firebase.auth().currentUser.updateProfile({
             displayName: this.state.name,
@@ -306,6 +523,14 @@ export default class Register extends Component {
             .child("settings")
             .child("notifications")
             .set(this.state.notifications)
+        await firebase.database()
+            .ref("users")
+            .child(firebase.auth().currentUser.uid)
+            .child("profile")
+            .set({
+                displayName: this.state.name,
+                photoURL: this.state.photoUrl
+            })
         this.setState({creatingMessage: "Laddar upp profilbild..."})
         await this.uploadImageAsync();
         global.user = new User(firebase.auth().currentUser, true)
@@ -315,3 +540,23 @@ export default class Register extends Component {
         }, 500)
     }
 }
+const styles = StyleSheet.create({
+    GenderSelector: {
+        margin: 2,
+        padding: 10,
+        borderRadius: 10,
+        borderColor: "black",
+        borderWidth: 1,
+    },
+    GenderSelectorText: {
+        fontWeight: "bold",
+        fontSize: 20,
+        color: getColorScheme().text_color,
+        textAlign: "center"
+    },
+    SubItalicText: {
+        fontStyle: "italic",
+        textAlign: "center",
+        fontWeight: "bold",
+    }
+})

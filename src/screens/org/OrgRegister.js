@@ -35,14 +35,10 @@ export default class OrgRegister extends Component {
             creating: false,
             creatingMessage: "Skapar ditt konto kan ta någon minut...",
             err: "",
-            screen: "done",
+            screen: "5",
 
 
         };
-    }
-
-    componentDidMount() {
-
     }
 
 
@@ -235,8 +231,8 @@ export default class OrgRegister extends Component {
                             textAlign: "center",
                             fontWeight: "bold",
                             margin: 10,
-                            fontSize: 20,
-                        }}> Organisations telefonnummer</Text>
+                            fontSize: 30,
+                        }}>Ditt Telefonnummer</Text>
                         <TextInput value={this.state.telefonnummer} style={{
                             ...styling.text,
                             fontStyle: "italic",
@@ -245,7 +241,7 @@ export default class OrgRegister extends Component {
                             margin: 5,
                             color: "grey",
                         }} maxLength={12} onChangeText={(t) => this.setState({telefonnummer: t})}
-                                   placeholder={"ANGE HÄR"}/>
+                                   placeholder={"+467XXXXXXXX"}/>
 
                         <View style={{display: "flex", flexDirection: "row-reverse"}}>
                             <View>
@@ -352,6 +348,58 @@ export default class OrgRegister extends Component {
                 }
 
                 {this.state.screen === "5" &&
+                    <View>
+                        <Text style={{
+                            ...styling.text,
+
+                            fontStyle: "italic",
+                            textAlign: "center",
+                            fontWeight: "bold",
+                            margin: 10,
+                            fontSize: 25,
+                        }}>Stämpelkort inställningar</Text>
+                        {this.state.grade === "basic" ?
+                            <View>
+
+                            </View>
+                            :
+                            <View></View>}
+
+                        <View style={{display: "flex", flexDirection: "row-reverse"}}>
+                            <View>
+                                <TouchableWithoutFeedback onPressIn={() => {
+                                    this.setState({screen: "done", err: ""})
+                                }}>
+                                    <Text style={{
+                                        ...styling.text,
+                                        fontStyle: "italic",
+                                        textAlign: "right",
+                                        fontWeight: "bold",
+                                        color: "green",
+                                        margin: 5
+
+                                    }}>Skapa organisation</Text>
+                                </TouchableWithoutFeedback>
+                            </View>
+                            <View>
+                                <TouchableWithoutFeedback onPressIn={() => {
+                                    this.setState({screen: "5", err: ""})
+                                }}>
+                                    <Text style={{
+                                        ...styling.text,
+                                        fontStyle: "italic",
+                                        fontWeight: "bold",
+                                        color: "red",
+                                        margin: 5
+
+                                    }}>Backa</Text>
+                                </TouchableWithoutFeedback>
+                            </View>
+                        </View>
+                    </View>
+                }
+
+                {this.state.screen === "6" &&
                     <View style={{height: "50%"}}>
                         <Text style={{
                             ...styling.text,
@@ -402,7 +450,7 @@ export default class OrgRegister extends Component {
                         <View style={{display: "flex", flexDirection: "row-reverse"}}>
                             <View>
                                 <TouchableWithoutFeedback onPressIn={() => {
-                                    this.setState({screen: "done", err: ""})
+                                    this.setState({screen: "6", err: ""})
                                 }}>
                                     <Text style={{
                                         ...styling.text,
@@ -432,7 +480,9 @@ export default class OrgRegister extends Component {
                             </View>
                         </View>
                     </View>
+
                 }
+
 
                 {this.state.screen === "done" &&
                     <View>
