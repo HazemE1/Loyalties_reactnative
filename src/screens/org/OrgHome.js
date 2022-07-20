@@ -38,7 +38,7 @@ export default class OrgHome extends Component {
         return (
             <View key={item.uuid} style={{...styling.shadow, flex: 1, flexBasis: "45%", height: 200, margin: 5}}>
                 <TouchableOpacity key={item.uuid} style={{flex: 1}}>
-                    <ImageBackground imageStyle={{opacity: 0.8, borderRadius: 10}} source={{uri: item.img["_W"]}}
+                    <ImageBackground imageStyle={{opacity: 0.8, borderRadius: 10}} source={{uri: item.img}}
                                      key={item.uid}
                                      style={{
                                          flex: 1,

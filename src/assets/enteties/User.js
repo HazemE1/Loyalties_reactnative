@@ -4,41 +4,27 @@ import "firebase/compat/auth"
 
 export default class User {
 
-    constructor() {
+    constructor(props) {
+        global.user = this;
 
-        this.stats = {done: 0, stamps: 0}
+        this.stats = props.stats
 
-        this.stamps = {}
+        this.stamps = props.stamps !== undefined ? props.stamps : {}
 
-        this.workPlaces = []
+        this.workPlaces = props.workPlaces  !== undefined ? props.workPlaces : []
 
-        this.notifications = true;
+        this.rewards = props.rewards !== undefined ? props.rewards : {}
+
+        this.notifications = props.notifications
+
+        this.gender = props.gender
 
         this.selectedUser = "";
 
         this.uuid = firebase.auth().currentUser.uid
-        global.user = this;
-
-
-    }
-
-
-    async loadUser(isNew) {
-        const ref = firebase.database().ref("users").child(firebase.auth().currentUser.uid);
-
-        if (!isNew) {
-            await ref.once("value", (d) => {
-                this.notifications = d.val().settings.notifications;
-                this.stats = d.val().stats
-                this.selectedUser = ""
-                this.workPlaces = d.val().workPlaces !== undefined ? d.val().workPlaces : {};
-                this.stamps = d.val().stamps !== undefined ? d.val().stamps : {}
-                this.gender = d.val().settings.gender
-            })
-        } else
-            await ref.child("stats").set(this.stats)
 
         this.setUpListeners()
+
     }
 
     setUpListeners() {

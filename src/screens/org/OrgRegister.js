@@ -3,41 +3,62 @@ import {
     ActivityIndicator,
     Alert,
     Image,
+    Keyboard,
     SafeAreaView,
+    StyleSheet,
     Text,
     TextInput,
     TouchableWithoutFeedback,
     View
 } from 'react-native';
 
-
 import * as ImagePicker from 'expo-image-picker';
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import "firebase/compat/storage";
-import {getColorScheme, styling} from "../../assets/components/schematics";
+import {genUUID, getColorScheme, styling} from "../../assets/components/schematics";
 import {AntDesign} from "@expo/vector-icons";
 import Organisation from "../../assets/enteties/Organisation";
+import Counter from "../../assets/components/Counter";
+import CardView from "../../assets/components/CardView";
+import {BlurView} from "expo-blur";
 
 
 export default class OrgRegister extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            name: "test",
-            mail: "test@test.se",
-            number: "123456789101",
-            description: "test",
+            name: "",
+            mail: "",
+            number: "",
+            description: "",
             grade: this.props.route.params.grade,
-            photoUrl: "file:///var/mobile/Containers/Data/Application/2EF005B0-3598-47CC-92A6-FAFBE590559A/Library/Caches/ExponentExperienceData/%2540hazemel%252Floyalty/ImagePicker/E4F680A8-6B1A-404F-B51C-F1A5B7F96474.jpg",
+            stamp_settings: {
+                done: 0,
+                amount: 5,
+                bg_img: "asd",
+                stamp_img: "asd",
+                stamp_bg: "asd",
+                title: "",
+                desc: "",
+                rewards: {}
+            },
+            stamp_done: 0,
+            photoUrl: "asd",
             owner: firebase.auth().currentUser.uid,
-            uid: String(Math.random() * 50 + Date.now() + Math.random() * 50 + Math.random() * 50).replace(",", "").replace("-", "").replace(".", ""),
+            uid: genUUID(),
             creating: false,
             creatingMessage: "Skapar ditt konto kan ta någon minut...",
             err: "",
-            screen: "5",
-
-
+            screen: "1",
+            addReward: {
+                id: genUUID(),
+                name: "",
+                description: "",
+                photoUrl: "dad",
+                position: 0,
+            },
+            showAddRewards: false,
         };
     }
 
@@ -62,19 +83,19 @@ export default class OrgRegister extends Component {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
-            aspect: [4, 3],
+            aspect: [6, 3],
             quality: 1,
         });
 
 
         if (!result.cancelled) {
-            this.setState({photoUrl: result.uri});
+            return result.uri;
         } else {
             this.setState({err: "Du måste välja profilbild"})
         }
     };
 
-    uploadImageAsync = async () => {
+    uploadImageAsync = async (path, img) => {
         // Why are we using XMLHttpRequest? See:
         // https://github.com/expo/expo/issues/2402#issuecomment-443726662
         const blob = await new Promise((resolve, reject) => {
@@ -86,16 +107,15 @@ export default class OrgRegister extends Component {
                 reject(new TypeError('Network request failed')); // error occurred, rejecting
             };
             xhr.responseType = 'blob'; // use BlobModule's UriHandler
-            xhr.open('GET', this.state.photoUrl, true); // fetch the blob from uri in async mode
+            xhr.open('GET', img, true); // fetch the blob from uri in async mode
             xhr.send(null); // no initial data
         });
         const ref = firebase
             .storage()
             .ref()
-            .child("org_profilbilder")
-            .child(this.state.uid);
+            .child(path)
         const snapshot = await ref.put(blob);
-        const remoteUri = snapshot.ref.getDownloadURL();
+        const remoteUri = await snapshot.ref.getDownloadURL();
 
         this.setState({photoUrl: remoteUri})
         blob.close();
@@ -112,478 +132,734 @@ export default class OrgRegister extends Component {
             </View>)
 
 
-        return (<SafeAreaView style={{...styling.wrapper}}>
+        return (
+            <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
 
-            <View style={styling.container}>
-                <Text style={{...styling.subtitle, fontWeight: "bold"}}>Organisations konto</Text>
-                <Text style={{...styling.text, fontStyle: "italic",}}>Mata in din information
-                    tack!</Text>
-                <Text style={{
-                    color: "red",
-                    textAlign: "center",
-                    fontWeight: "bold",
-                    marginTop: 5
-                }}> {this.state.err.toUpperCase()}</Text>
-                {this.state.screen === "1" &&
-                    <View>
-                        <Text style={{
-                            ...styling.text,
-
-                            fontStyle: "italic",
-                            textAlign: "center",
-                            fontWeight: "bold",
-                            margin: 10,
-                            fontSize: 30,
-                        }}> Organisations namn</Text>
-                        <TextInput value={this.state.name} style={{
-                            ...styling.text,
-                            fontStyle: "italic",
-                            textAlign: "center",
-                            fontWeight: "bold",
-                            margin: 5,
-                            color: "grey"
-                        }} onChangeText={(t) => this.setState({name: t})} placeholder={"ANGE HÄR"}/>
-
-                        <View>
-                            <TouchableWithoutFeedback onPressIn={() => {
-                                if (this.state.name.length >= 1)
-                                    this.setState({screen: "2", err: ""})
-                                else
-                                    this.setState({err: "Viktigt att ange ett namn"})
+                <SafeAreaView style={{...styling.wrapper}}>
+                    {this.state.showAddRewards &&
+                        <BlurView style={[StyleSheet.absoluteFill, {zIndex: 5, justifyContent: "center"}]}>
+                            <View style={{
+                                justifySelf: "center",
+                                alignSelf: "center",
+                                backgroundColor: getColorScheme().bg_color,
+                                height: 420,
+                                width: "80%",
+                                borderRadius: 10,
+                                padding: 10
                             }}>
+                                <Text style={{
+                                    color: "red",
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                    marginTop: 5,
+                                    zIndex: 100
+                                }}> {this.state.err.toUpperCase()}</Text>
+                                <Text style={[styling.title, {textAlign: "center", margin: 5, marginBottom: 10}]}>Lägg
+                                    till vinst</Text>
+
+                                <TextInput placeholder={"Vinstens namn"}
+                                           placeholderTextColor="grey"
+                                           onChangeText={(t) => this.setState({
+                                               addReward: {
+                                                   ...this.state.addReward,
+                                                   name: t
+                                               }
+                                           })}
+                                           style={{fontSize: 20, margin: 10, color: "white"}}/>
+                                <TextInput placeholder={"Vinstens beskriving"}
+                                           placeholderTextColor="grey"
+                                           onChangeText={(t) => this.setState({
+                                               addReward: {
+                                                   ...this.state.addReward,
+                                                   description: t
+                                               }
+                                           })} style={{
+                                    fontSize: 20,
+                                    margin: 10,
+                                    color: "white",
+                                    width: "80%",
+                                    maxHeight: 80,
+
+                                }}
+                                           multiline={true}
+                                />
+                                <View style={{flexDirection: "row", margin: 10, alignItems: "center"}}>
+                                    <Text style={{
+                                        fontSize: 20,
+                                        color: "white",
+                                        maxHeight: 80,
+                                        marginRight: 10,
+                                    }}>Position</Text>
+                                    <Counter style={{alignContent: "center"}}
+                                             max={this.state.stamp_settings.amount}
+                                             min={1}
+                                             arrow={{
+                                                 fontWeight: "bold",
+                                                 color: "black",
+                                                 fontSize: 20,
+                                                 margin: 10
+                                             }}
+                                             add={{
+                                                 color: "green"
+                                             }}
+                                             remove={{
+                                                 color: "red"
+                                             }}
+                                             counter={{
+                                                 fontWeight: "bold",
+                                                 color: "white",
+                                                 fontSize: 25,
+                                             }}
+                                             onChange={(count) => {
+                                                 this.setState({
+                                                     addReward: {
+                                                         ...this.state.addReward,
+                                                         position: count - 1
+                                                     }
+                                                 })
+                                             }}
+                                             value={1}
+                                    />
+                                </View>
+                                <View style={{flexDirection: "row", margin: 10}}>
+                                    <TouchableWithoutFeedback onPress={async () => this.setState({
+                                        addReward: {
+                                            ...this.state.addReward,
+                                            photoUrl: await this.pickImage()
+                                        }
+                                    })}>
+                                        <Text style={{fontSize: 20, color: "white", marginRight: 10}}>Lägg till
+                                            bild</Text>
+                                    </TouchableWithoutFeedback>
+                                    <Image source={{uri: this.state.addReward.photoUrl}}
+                                           style={{height: 50, width: 50}}/>
+                                </View>
+
+                                <View style={{
+                                    flexDirection: "row",
+                                    alignSelf: "flex-end",
+                                    justifySelf: "flex-end",
+                                    margin: 10,
+                                    height: "100%"
+                                }}>
+                                    <TouchableWithoutFeedback onPress={() => this.setState({
+                                        showAddRewards: false
+                                    })}>
+                                        <Text style={{fontSize: 20, margin: 10, color: "red"}}>Avbryt</Text>
+                                    </TouchableWithoutFeedback>
+                                    <TouchableWithoutFeedback onPress={async () => {
+                                        if (this.state.addReward.description === "" || !this.state.addReward.photoUrl.includes("/") || this.state.addReward.name === "") {
+                                            this.setState({
+                                                err: "Du måste mata in all information"
+                                            })
+                                            return
+                                        }
+
+                                        this.setState({
+                                            stamp_settings: {
+                                                ...this.state.stamp_settings,
+                                                rewards: {
+                                                    ...this.state.stamp_settings.rewards,
+                                                    [this.state.addReward.position]: this.state.addReward,
+                                                },
+                                            },
+                                        });
+                                        this.setState({
+                                            showAddRewards: false,
+                                            addReward: {
+                                                id: genUUID(),
+                                                name: "",
+                                                description: "",
+                                                photoUrl: "dad",
+                                                position: 0,
+                                            },
+                                        })
+
+                                    }}>
+                                        <Text style={{fontSize: 20, margin: 10, color: "green"}}>Skapa</Text>
+                                    </TouchableWithoutFeedback>
+                                </View>
+                            </View>
+                        </BlurView>
+                    }
+                    <View style={styling.container}>
+                        <Text style={{...styling.subtitle, fontWeight: "bold"}}>Organisations konto</Text>
+                        <Text style={{...styling.text, fontStyle: "italic",}}>Mata in din information
+                            tack!</Text>
+                        <Text style={{
+                            color: "red",
+                            textAlign: "center",
+                            fontWeight: "bold",
+                            marginTop: 5,
+                            zIndex: 100
+                        }}> {this.state.err.toUpperCase()}</Text>
+                        {this.state.screen === "1" &&
+                            <View>
                                 <Text style={{
                                     ...styling.text,
                                     fontStyle: "italic",
-                                    textAlign: "right",
+                                    textAlign: "center",
                                     fontWeight: "bold",
-                                    color: "green",
-                                    margin: 5
+                                    margin: 10,
+                                    fontSize: 30,
+                                }}> Organisations namn</Text>
+                                <TextInput value={this.state.name} style={{
+                                    ...styling.text,
+                                    fontStyle: "italic",
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                    margin: 5,
+                                    color: "white"
+                                }} onChangeText={(t) => this.setState({name: t})} placeholder={"Organisationens namn"}/>
 
-                                }}>Fortsätt</Text>
-                            </TouchableWithoutFeedback>
-                        </View>
-                    </View>
-                }
-                {this.state.screen === "2" &&
-                    <View>
-                        <Text style={{
-                            ...styling.text,
+                                <View>
+                                    <TouchableWithoutFeedback onPressIn={() => {
+                                        if (this.state.name.length >= 1)
+                                            this.setState({screen: "2", err: ""})
+                                        else
+                                            this.setState({err: "Viktigt att ange ett namn"})
+                                    }}>
+                                        <Text style={{
+                                            ...styling.text,
+                                            fontStyle: "italic",
+                                            textAlign: "right",
+                                            fontWeight: "bold",
+                                            color: "green",
+                                            margin: 5
 
-                            fontStyle: "italic",
-                            textAlign: "center",
-                            fontWeight: "bold",
-                            margin: 10,
-                            fontSize: 30,
-                        }}> Organisations mail</Text>
-                        <TextInput value={this.state.mail} style={{
-                            ...styling.text,
-                            fontStyle: "italic",
-                            textAlign: "center",
-                            fontWeight: "bold",
-                            margin: 5,
-                            color: "grey"
-                        }} onChangeText={(t) => this.setState({mail: t})} placeholder={"ANGE HÄR"}/>
-
-                        <View style={{display: "flex", flexDirection: "row-reverse"}}>
-                            <View>
-                                <TouchableWithoutFeedback onPressIn={() => {
-                                    if (this.state.mail === "" || !this.state.mail.includes("@") || !this.state.mail.includes(".") || this.state.mail.length < 5)
-                                        this.setState({err: "Viktigt att ange en mail"})
-                                    else
-                                        this.setState({screen: "3", err: ""})
-
-                                }}>
-                                    <Text style={{
-                                        ...styling.text,
-                                        fontStyle: "italic",
-                                        textAlign: "right",
-                                        fontWeight: "bold",
-                                        color: "green",
-                                        margin: 5
-
-                                    }}>Fortsätt</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-
-                            <View>
-                                <TouchableWithoutFeedback onPressIn={() => {
-                                    this.setState({screen: "1", err: ""})
-                                }}>
-                                    <Text style={{
-                                        ...styling.text,
-                                        fontStyle: "italic",
-                                        fontWeight: "bold",
-                                        color: "red",
-                                        margin: 5
-
-                                    }}>Backa</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                        </View>
-                    </View>
-                }
-                {this.state.screen === "3" &&
-                    <View>
-                        <Text style={{
-                            ...styling.text,
-
-                            fontStyle: "italic",
-                            textAlign: "center",
-                            fontWeight: "bold",
-                            margin: 10,
-                            fontSize: 30,
-                        }}>Ditt Telefonnummer</Text>
-                        <TextInput value={this.state.telefonnummer} style={{
-                            ...styling.text,
-                            fontStyle: "italic",
-                            textAlign: "center",
-                            fontWeight: "bold",
-                            margin: 5,
-                            color: "grey",
-                        }} maxLength={12} onChangeText={(t) => this.setState({telefonnummer: t})}
-                                   placeholder={"+467XXXXXXXX"}/>
-
-                        <View style={{display: "flex", flexDirection: "row-reverse"}}>
-                            <View>
-                                <TouchableWithoutFeedback onPressIn={() => {
-                                    if (this.state.telefonnummer.length < 10)
-                                        this.setState({err: "Viktigt att ange ett giltlig telefonnummer"})
-                                    else
-                                        this.setState({screen: "4", err: ""})
-                                }}>
-                                    <Text style={{
-                                        ...styling.text,
-                                        fontStyle: "italic",
-                                        textAlign: "right",
-                                        fontWeight: "bold",
-                                        color: "green",
-                                        margin: 5
-
-                                    }}>Fortsätt</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-
-                            <View>
-                                <TouchableWithoutFeedback onPressIn={() => {
-                                    this.setState({screen: "2", err: ""})
-                                }}>
-                                    <Text style={{
-                                        ...styling.text,
-                                        fontStyle: "italic",
-                                        fontWeight: "bold",
-                                        color: "red",
-                                        margin: 5
-
-                                    }}>Backa</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                        </View>
-                    </View>
-                }
-                {this.state.screen === "4" &&
-                    <View>
-                        <Text style={{
-                            ...styling.text,
-
-                            fontStyle: "italic",
-                            textAlign: "center",
-                            fontWeight: "bold",
-                            margin: 10,
-                            fontSize: 30,
-                        }}> Beskrivning</Text>
-                        <TextInput
-                            value={this.state.description}
-                            multiline={true}
-                            numberOfLines={5}
-                            placeholderTextColor={getColorScheme().text_color}
-                            maxLength={260}
-                            style={{
-                                ...styling.text,
-                                fontStyle: "italic",
-                                fontWeight: "bold",
-                                margin: 5,
-                                height: 100,
-                                maxHeight: 100,
-                                backgroundColor: "rgba(255,255,255,0.1)",
-                                borderRadius: 10,
-                                padding: 5,
-                                fontSize: 15
-                            }} onChangeText={(t) => this.setState({description: t})} placeholder={"ANGE HÄR"}/>
-                        <View style={{display: "flex", flexDirection: "row-reverse"}}>
-                            <View>
-                                <TouchableWithoutFeedback onPressIn={() => {
-                                    if (this.state.description.length < 5)
-                                        this.setState({err: "Viktigt att ange en beskrivning."})
-                                    else
-                                        this.setState({screen: "5", err: ""})
-                                }}>
-                                    <Text style={{
-                                        ...styling.text,
-                                        fontStyle: "italic",
-                                        textAlign: "right",
-                                        fontWeight: "bold",
-                                        color: "green",
-                                        margin: 5
-
-                                    }}>Fortsätt</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-
-                            <View>
-                                <TouchableWithoutFeedback onPressIn={() => {
-                                    this.setState({screen: "3", err: ""})
-                                }}>
-                                    <Text style={{
-                                        ...styling.text,
-                                        fontStyle: "italic",
-                                        fontWeight: "bold",
-                                        color: "red",
-                                        margin: 5
-
-                                    }}>Backa</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                        </View>
-                    </View>
-                }
-
-                {this.state.screen === "5" &&
-                    <View>
-                        <Text style={{
-                            ...styling.text,
-
-                            fontStyle: "italic",
-                            textAlign: "center",
-                            fontWeight: "bold",
-                            margin: 10,
-                            fontSize: 25,
-                        }}>Stämpelkort inställningar</Text>
-                        {this.state.grade === "basic" ?
-                            <View>
-
-                            </View>
-                            :
-                            <View></View>}
-
-                        <View style={{display: "flex", flexDirection: "row-reverse"}}>
-                            <View>
-                                <TouchableWithoutFeedback onPressIn={() => {
-                                    this.setState({screen: "done", err: ""})
-                                }}>
-                                    <Text style={{
-                                        ...styling.text,
-                                        fontStyle: "italic",
-                                        textAlign: "right",
-                                        fontWeight: "bold",
-                                        color: "green",
-                                        margin: 5
-
-                                    }}>Skapa organisation</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback onPressIn={() => {
-                                    this.setState({screen: "5", err: ""})
-                                }}>
-                                    <Text style={{
-                                        ...styling.text,
-                                        fontStyle: "italic",
-                                        fontWeight: "bold",
-                                        color: "red",
-                                        margin: 5
-
-                                    }}>Backa</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                        </View>
-                    </View>
-                }
-
-                {this.state.screen === "6" &&
-                    <View style={{height: "50%"}}>
-                        <Text style={{
-                            ...styling.text,
-
-                            fontStyle: "italic",
-                            textAlign: "center",
-                            fontWeight: "bold",
-                            margin: 10,
-                            fontSize: 30,
-                        }}> Välj profilbild</Text>
-                        <TouchableWithoutFeedback onPress={() => this.pickImage()}
-                                                  style={{flex: 1,}}>
-                            {this.state.photoUrl === "" ?
-                                <View style={{flex: 1, alignItems: "center", margin: 40, overflow: "none"}}>
-                                    <AntDesign name="user" size={200} style={{
-                                        borderColor: getColorScheme().text_color,
-                                        borderWidth: 2,
-                                        borderRadius: 10,
-                                        padding: 10
-                                    }} color={getColorScheme().text_color}/>
-                                    <Text style={{
-                                        ...styling.text,
-                                        fontSize: 15,
-                                        fontWeight: "bold",
-                                        textAlign: "center"
-                                    }}>Välj
-                                        profilbild</Text>
+                                        }}>Fortsätt</Text>
+                                    </TouchableWithoutFeedback>
                                 </View>
-                                :
-                                <View style={{flex: 1, alignItems: "center", margin: 40, overflow: "none"}}>
-                                    <Image source={{uri: this.state.photoUrl}} style={{
-                                        backgroundColor: getColorScheme().first_color,
-                                        width: 200,
-                                        height: 200,
-                                        borderRadius: 10,
-                                        padding: 20,
-                                        resizeMode: "stretch",
-                                    }}/>
-                                    <Text style={{
-                                        ...styling.text,
-                                        fontSize: 15,
-                                        fontWeight: "bold",
-                                        textAlign: "center"
-                                    }}>Välj profilbild</Text>
+                            </View>
+                        }
+                        {this.state.screen === "2" &&
+                            <View>
+                                <Text style={{
+                                    ...styling.text,
+
+                                    fontStyle: "italic",
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                    margin: 10,
+                                    fontSize: 30,
+                                }}> Organisations mail</Text>
+                                <TextInput value={this.state.mail} style={{
+                                    ...styling.text,
+                                    fontStyle: "italic",
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                    margin: 5,
+                                    color: "white"
+                                }} onChangeText={(t) => this.setState({mail: t})} placeholder={"Organisationens mail"}/>
+
+                                <View style={{display: "flex", flexDirection: "row-reverse"}}>
+                                    <View>
+                                        <TouchableWithoutFeedback onPressIn={() => {
+                                            if (this.state.mail === "" || !this.state.mail.includes("@") || !this.state.mail.includes(".") || this.state.mail.length < 5)
+                                                this.setState({err: "Viktigt att ange en mail"})
+                                            else
+                                                this.setState({screen: "3", err: ""})
+
+                                        }}>
+                                            <Text style={{
+                                                ...styling.text,
+                                                fontStyle: "italic",
+                                                textAlign: "right",
+                                                fontWeight: "bold",
+                                                color: "green",
+                                                margin: 5
+
+                                            }}>Fortsätt</Text>
+                                        </TouchableWithoutFeedback>
+                                    </View>
+
+                                    <View>
+                                        <TouchableWithoutFeedback onPressIn={() => {
+                                            this.setState({screen: "1", err: ""})
+                                        }}>
+                                            <Text style={{
+                                                ...styling.text,
+                                                fontStyle: "italic",
+                                                fontWeight: "bold",
+                                                color: "red",
+                                                margin: 5
+
+                                            }}>Backa</Text>
+                                        </TouchableWithoutFeedback>
+                                    </View>
                                 </View>
-                            }
-                        </TouchableWithoutFeedback>
-                        <View style={{display: "flex", flexDirection: "row-reverse"}}>
+                            </View>
+                        }
+                        {this.state.screen === "3" &&
                             <View>
-                                <TouchableWithoutFeedback onPressIn={() => {
-                                    this.setState({screen: "6", err: ""})
-                                }}>
-                                    <Text style={{
+                                <Text style={{
+                                    ...styling.text,
+
+                                    fontStyle: "italic",
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                    margin: 10,
+                                    fontSize: 30,
+                                }}>Ditt Telefonnummer</Text>
+                                <TextInput value={this.state.telefonnummer} style={{
+                                    ...styling.text,
+                                    fontStyle: "italic",
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                    margin: 5,
+                                    color: "white"
+                                }} maxLength={12} onChangeText={(t) => this.setState({telefonnummer: t})}
+                                           placeholder={"+467XXXXXXXX"}/>
+
+                                <View style={{display: "flex", flexDirection: "row-reverse"}}>
+                                    <View>
+                                        <TouchableWithoutFeedback onPressIn={() => {
+                                            if (this.state.telefonnummer.length < 10)
+                                                this.setState({err: "Viktigt att ange ett giltlig telefonnummer"})
+                                            else
+                                                this.setState({screen: "4", err: ""})
+                                        }}>
+                                            <Text style={{
+                                                ...styling.text,
+                                                fontStyle: "italic",
+                                                textAlign: "right",
+                                                fontWeight: "bold",
+                                                color: "green",
+                                                margin: 5
+
+                                            }}>Fortsätt</Text>
+                                        </TouchableWithoutFeedback>
+                                    </View>
+
+                                    <View>
+                                        <TouchableWithoutFeedback onPressIn={() => {
+                                            this.setState({screen: "2", err: ""})
+                                        }}>
+                                            <Text style={{
+                                                ...styling.text,
+                                                fontStyle: "italic",
+                                                fontWeight: "bold",
+                                                color: "red",
+                                                margin: 5
+
+                                            }}>Backa</Text>
+                                        </TouchableWithoutFeedback>
+                                    </View>
+                                </View>
+                            </View>
+                        }
+                        {this.state.screen === "4" &&
+                            <View>
+                                <Text style={{
+                                    ...styling.text,
+
+                                    fontStyle: "italic",
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                    margin: 10,
+                                    fontSize: 30,
+                                }}> Beskrivning</Text>
+                                <TextInput
+                                    value={this.state.description}
+                                    multiline={true}
+                                    numberOfLines={5}
+                                    placeholderTextStyle={"grey"}
+                                    maxLength={260}
+                                    style={{
                                         ...styling.text,
                                         fontStyle: "italic",
-                                        textAlign: "right",
                                         fontWeight: "bold",
-                                        color: "green",
-                                        margin: 5
+                                        margin: 5,
+                                        height: 100,
+                                        maxHeight: 100,
+                                        backgroundColor: "rgba(255,255,255,0.1)",
+                                        borderRadius: 10,
+                                        padding: 5,
+                                        fontSize: 15,
+                                        color: "white"
 
-                                    }}>Skapa organisation</Text>
-                                </TouchableWithoutFeedback>
+                                    }} onChangeText={(t) => this.setState({description: t})}
+                                    placeholder={"En kort beskrivning av din organisation"}/>
+                                <View style={{display: "flex", flexDirection: "row-reverse"}}>
+                                    <View>
+                                        <TouchableWithoutFeedback onPressIn={() => {
+                                            if (this.state.description.length < 5)
+                                                this.setState({err: "Viktigt att ange en beskrivning."})
+                                            else
+                                                this.setState({screen: "5", err: ""})
+                                        }}>
+                                            <Text style={{
+                                                ...styling.text,
+                                                fontStyle: "italic",
+                                                textAlign: "right",
+                                                fontWeight: "bold",
+                                                color: "green",
+                                                margin: 5
+
+                                            }}>Fortsätt</Text>
+                                        </TouchableWithoutFeedback>
+                                    </View>
+
+                                    <View>
+                                        <TouchableWithoutFeedback onPressIn={() => {
+                                            this.setState({screen: "3", err: ""})
+                                        }}>
+                                            <Text style={{
+                                                ...styling.text,
+                                                fontStyle: "italic",
+                                                fontWeight: "bold",
+                                                color: "red",
+                                                margin: 5
+
+                                            }}>Backa</Text>
+                                        </TouchableWithoutFeedback>
+                                    </View>
+                                </View>
                             </View>
+                        }
 
+                        {this.state.screen === "5" &&
                             <View>
-                                <TouchableWithoutFeedback onPressIn={() => {
-                                    this.setState({screen: "4", err: ""})
-                                }}>
+                                <Text style={{
+                                    ...styling.text,
+
+                                    fontStyle: "italic",
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                    margin: 10,
+                                    fontSize: 25,
+                                }}>Stämpelkort inställningar</Text>
+                                <CardView
+                                    done={this.state.stamp_settings.done}
+                                    amount={this.state.stamp_settings.amount}
+                                    bg_img={this.state.stamp_settings.bg_img}
+                                    stamp_img={this.state.stamp_settings.stamp_img}
+                                    stamp_bg={this.state.stamp_settings.stamp_bg}
+                                    title={this.state.stamp_settings.title}
+                                    desc={this.state.stamp_settings.desc}
+                                    rewards={this.state.stamp_settings.rewards}/>
+                                {this.state.stamp_done === 0 && <View>
+                                    <TouchableWithoutFeedback onPress={async () => this.setState({
+                                        stamp_settings: {
+                                            ...this.state.stamp_settings,
+                                            bg_img: await this.pickImage()
+                                        }
+                                    })}>
+                                        <Text style={{
+                                            ...styling.text,
+
+                                            fontStyle: "italic",
+                                            textAlign: "center",
+                                            fontWeight: "bold",
+                                            margin: 10,
+                                            fontSize: 20,
+                                        }}> Välj backgrund bild</Text>
+                                    </TouchableWithoutFeedback>
+                                </View>}
+                                {this.state.stamp_done === 1 && <View>
                                     <Text style={{
                                         ...styling.text,
+
                                         fontStyle: "italic",
+                                        textAlign: "center",
                                         fontWeight: "bold",
-                                        color: "red",
-                                        margin: 5
-
-                                    }}>Backa</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                        </View>
-                    </View>
-
-                }
-
-
-                {this.state.screen === "done" &&
-                    <View>
-                        <Text style={{
-                            ...styling.text,
-
-                            fontStyle: "italic",
-                            textAlign: "center",
-                            fontWeight: "bold",
-                            margin: 10,
-                            fontSize: 30,
-                        }}> BEKRÄFTA</Text>
-
-                        {Object.keys(this.state).map((t) => {
-                            if (t === "screen" || t === "err" || t === "creating" || t === "creatingMessage" || t === "uid" || t === "owner")
-                                return
-
-                            let variable = "";
-                            if (t === "name")
-                                variable = "Namn"
-                            else if (t === "mail")
-                                variable = "Mail"
-                            else if (t === "number")
-                                variable = "Nummer"
-                            else if (t === "description")
-                                variable = "Beskrivning"
-                            else if (t === "photoUrl")
-                                variable = "Profilbild"
-                            else if (t === "grade")
-                                variable = "Prenumeration"
-                            if (t === "photoUrl")
-                                return <View key={variable} style={{margin: 5}}>
-                                    <Text style={{
-                                        color: getColorScheme().text_color,
-                                        fontWeight: "bold",
+                                        margin: 10,
                                         fontSize: 20,
-                                    }}>{variable}</Text>
-                                    <Image source={{uri: this.state.photoUrl}} style={{
-                                        backgroundColor: getColorScheme().first_color,
-                                        width: 200,
-                                        height: 200,
-                                        borderRadius: 10,
-                                        padding: 20,
-                                        resizeMode: "stretch",
-                                    }}/>
+                                    }}> Stämpelkort title</Text>
+                                    <TextInput maxLength={10}
+                                               style={{
+                                                   alignSelf: "center",
+                                                   color: "white",
+                                                   fontWeight: "bold",
+                                                   fontSize: 20
+                                               }}
+                                               placeholder={"Title"} onChangeText={(t) => this.setState({
+                                        stamp_settings: {
+                                            ...this.state.stamp_settings,
+                                            title: t
+                                        }
+                                    })}/>
+                                </View>}
+                                {this.state.stamp_done === 2 && <View>
+                                    <Text style={{
+                                        ...styling.text,
+
+                                        fontStyle: "italic",
+                                        textAlign: "center",
+                                        fontWeight: "bold",
+                                        margin: 10,
+                                        fontSize: 20,
+                                    }}> Stämpelkort beskrivning</Text>
+                                    <TextInput multiline={true}
+                                               maxLength={60}
+                                               placeholderTextColor="grey"
+                                               style={{
+                                                   alignSelf: "center",
+                                                   color: "white",
+                                                   fontWeight: "bold",
+                                                   fontSize: 20,
+                                                   maxHeight: 60
+                                               }}
+                                               placeholder={"Här skriver du ditt stämp\nelkorts meddelande"}
+                                               onChangeText={(t) => this.setState({
+                                                   stamp_settings: {
+                                                       ...this.state.stamp_settings,
+                                                       desc: t
+                                                   }
+                                               })}/>
+                                </View>}
+                                {this.state.stamp_done === 3 && <View>
+                                    <TouchableWithoutFeedback onPress={async () => this.setState({
+                                        stamp_settings: {
+                                            ...this.state.stamp_settings,
+                                            stamp_bg: await this.pickImage()
+                                        }
+                                    })}>
+                                        <Text style={{
+                                            ...styling.text,
+
+                                            fontStyle: "italic",
+                                            textAlign: "center",
+                                            fontWeight: "bold",
+                                            margin: 10,
+                                            fontSize: 20,
+                                        }}> Välj stämpelens backgrounds bild</Text>
+                                    </TouchableWithoutFeedback>
+                                </View>}
+                                {this.state.stamp_done === 4 && <View>
+                                    <TouchableWithoutFeedback onPress={async () => this.setState({
+                                        stamp_settings: {
+                                            ...this.state.stamp_settings,
+                                            stamp_img: await this.pickImage(),
+                                            done: 4
+                                        }
+                                    })}>
+                                        <Text style={{
+                                            ...styling.text,
+
+                                            fontStyle: "italic",
+                                            textAlign: "center",
+                                            fontWeight: "bold",
+                                            margin: 10,
+                                            fontSize: 20,
+                                        }}> Välj stämpelens bild</Text>
+                                    </TouchableWithoutFeedback>
+                                </View>}
+
+                                {this.state.stamp_done === 5 && <View>
+                                    <Text style={{
+                                        ...styling.text,
+
+                                        fontStyle: "italic",
+                                        textAlign: "center",
+                                        fontWeight: "bold",
+                                        margin: 10,
+                                        fontSize: 20,
+                                    }}> Antal stämpel per kort</Text>
+                                    <Counter
+                                        style={{
+                                            alignSelf: "center"
+                                        }}
+                                        max={10}
+                                        min={1}
+                                        arrow={{
+                                            fontWeight: "bold",
+                                            color: "black",
+                                            fontSize: 30,
+                                            margin: 10
+                                        }}
+                                        add={{
+                                            color: "green"
+                                        }}
+                                        remove={{
+                                            color: "red"
+                                        }}
+                                        counter={{
+                                            fontWeight: "bold",
+                                            color: "blue",
+                                            fontSize: 50,
+
+                                        }
+                                        }
+                                        onChange={(count) => {
+                                            this.setState({
+                                                stamp_settings: {
+                                                    ...this.state.stamp_settings,
+                                                    amount: count
+                                                }
+                                            })
+                                        }}
+                                        value={this.state.stamp_settings.amount}
+                                    />
+                                </View>}
+                                {this.state.stamp_done === 6 && <View>
+                                    <TouchableWithoutFeedback onPress={async () => this.setState({
+                                        showAddRewards: true
+                                    })}>
+                                        <Text style={{
+                                            ...styling.text,
+
+                                            fontStyle: "italic",
+                                            textAlign: "center",
+                                            fontWeight: "bold",
+                                            margin: 10,
+                                            fontSize: 20,
+                                        }}>Lägg till vinster</Text>
+                                    </TouchableWithoutFeedback>
+
+                                </View>}
+
+                                <View style={{display: "flex", flexDirection: "row-reverse"}}>
+                                    {this.state.stamp_done !== 6 && <View>
+                                        <TouchableWithoutFeedback onPressIn={() => {
+                                            this.setState({stamp_done: this.state.stamp_done + 1, err: ""})
+                                        }}>
+                                            <Text style={{
+                                                ...styling.text,
+                                                fontStyle: "italic",
+                                                textAlign: "right",
+                                                fontWeight: "bold",
+                                                color: "green",
+                                                margin: 5
+
+                                            }}>{"Nästa"}</Text>
+                                        </TouchableWithoutFeedback>
+                                    </View>}
+                                    {this.state.stamp_done !== 0 && <View>
+                                        <TouchableWithoutFeedback onPressIn={() => {
+                                            this.setState({stamp_done: this.state.stamp_done - 1, err: ""})
+                                        }}>
+                                            <Text style={{
+                                                ...styling.text,
+                                                fontStyle: "italic",
+                                                fontWeight: "bold",
+                                                color: "red",
+                                                margin: 5
+
+                                            }}>{"backa"}</Text>
+                                        </TouchableWithoutFeedback>
+                                    </View>}
                                 </View>
 
-                            return <View key={variable} style={{margin: 5}}>
+                                {this.state.stamp_done === 6 &&
+                                    <View>
+                                        <TouchableWithoutFeedback onPressIn={() => {
+                                            this.setState({screen: "6", err: ""})
+                                        }}>
+                                            <Text style={{
+                                                ...styling.text,
+                                                fontStyle: "italic",
+                                                textAlign: "right",
+                                                fontWeight: "bold",
+                                                color: "green",
+                                                margin: 5
+
+                                            }}>Välj profilbild</Text>
+                                        </TouchableWithoutFeedback>
+                                    </View>}
+                                {this.state.stamp_done === 0 &&
+                                    <View>
+                                        <TouchableWithoutFeedback onPressIn={() => {
+                                            this.setState({screen: "4", err: ""})
+                                        }}>
+                                            <Text style={{
+                                                ...styling.text,
+                                                fontStyle: "italic",
+                                                fontWeight: "bold",
+                                                color: "red",
+                                                margin: 5
+
+                                            }}>Backa</Text>
+                                        </TouchableWithoutFeedback>
+                                    </View>}
+
+                            </View>
+                        }
+
+                        {this.state.screen === "6" &&
+                            <View style={{height: "50%"}}>
                                 <Text style={{
-                                    color: getColorScheme().text_color,
+                                    ...styling.text,
+
+                                    fontStyle: "italic",
+                                    textAlign: "center",
                                     fontWeight: "bold",
-                                    fontSize: 20,
-                                    textAlign: "center"
-                                }}>{variable.toUpperCase()}</Text>
-                                <Text style={{
-                                    color: getColorScheme().text_color,
+                                    margin: 10,
+                                    fontSize: 30,
+                                }}> Välj profilbild</Text>
+                                <TouchableWithoutFeedback
+                                    onPress={async () => this.setState({photoUrl: await this.pickImage()})}
+                                    style={{flex: 1,}}>
+                                    <View style={{flex: 1, alignItems: "center", margin: 40, overflow: "none"}}>
+                                        {this.state.photoUrl === "asd" ?
 
-                                    fontSize: 20,
-                                    textAlign: "center"
-                                }}>{this.state[t]}</Text>
+                                            <AntDesign name="user" size={200} style={{
+                                                borderColor: getColorScheme().text_color,
+                                                borderWidth: 2,
+                                                borderRadius: 10,
+                                                padding: 10
+                                            }} color={getColorScheme().text_color}/>
+                                            :
+                                            <Image source={{uri: this.state.photoUrl}} style={{
+                                                backgroundColor: getColorScheme().first_color,
+                                                width: 200,
+                                                height: 200,
+                                                borderRadius: 10,
+                                                padding: 20,
+                                                resizeMode: "stretch",
+                                            }}/>}
+                                        <Text style={{
+                                            ...styling.text,
+                                            fontSize: 15,
+                                            fontWeight: "bold",
+                                            textAlign: "center"
+                                        }}>Välj
+                                            profilbild</Text>
+                                    </View>
 
-                            </View>
 
-                        })}
-
-                        <View style={{display: "flex", flexDirection: "row-reverse"}}>
-                            <View>
-                                <TouchableWithoutFeedback onPressIn={() => {
-                                    this.createOrg()
-                                }}>
-                                    <Text style={{
-                                        ...styling.text,
-                                        fontStyle: "italic",
-                                        textAlign: "right",
-                                        fontWeight: "bold",
-                                        color: "green",
-                                        margin: 5
-
-                                    }}>Skapa organisation</Text>
                                 </TouchableWithoutFeedback>
+                                <View style={{display: "flex", flexDirection: "row-reverse"}}>
+                                    <View>
+                                        <TouchableWithoutFeedback onPressIn={() => {
+                                            this.createOrg()
+                                        }}>
+                                            <Text style={{
+                                                ...styling.text,
+                                                fontStyle: "italic",
+                                                textAlign: "right",
+                                                fontWeight: "bold",
+                                                color: "green",
+                                                margin: 5
+
+                                            }}>Skapa organisation</Text>
+                                        </TouchableWithoutFeedback>
+                                    </View>
+
+                                    <View>
+                                        <TouchableWithoutFeedback onPressIn={() => {
+                                            this.setState({screen: "4", err: ""})
+                                        }}>
+                                            <Text style={{
+                                                ...styling.text,
+                                                fontStyle: "italic",
+                                                fontWeight: "bold",
+                                                color: "red",
+                                                margin: 5
+
+                                            }}>Backa</Text>
+                                        </TouchableWithoutFeedback>
+                                    </View>
+                                </View>
                             </View>
 
-                            <View>
-                                <TouchableWithoutFeedback onPressIn={() => {
-                                    this.setState({screen: "5"})
-                                }}>
-                                    <Text style={{
-                                        ...styling.text,
-                                        fontStyle: "italic",
-                                        fontWeight: "bold",
-                                        color: "red",
-                                        margin: 5
+                        }
 
-                                    }}>Backa</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                        </View>
+
                     </View>
-                }
-            </View>
-        </SafeAreaView>);
+                </SafeAreaView>
+            </TouchableWithoutFeedback>
+        );
     }
 
     async createOrg() {
@@ -604,12 +880,22 @@ export default class OrgRegister extends Component {
             return;
         }
 
+        if (this.state.stamp_settings.title === ""){
+            this.setState({err: "Glöm inte configurera stämpelkortet!"});
+            return;
+        }
+
         this.setState({creating: true})
         setTimeout(() => {
         }, 500)
         this.setState({creatingMessage: "Laddar upp profilbild..."})
-        await this.uploadImageAsync();
-        this.setState({creatingMessage: "Skapar din profil..."})
+        await this.uploadImageAsync("org_pb/" + this.state.uid, this.state.photoUrl);
+        this.setState({creatingMessage: "Laddar upp stämpelkortets bilder..."})
+        await this.uploadImageAsync("org_stamp/bg" + this.state.uid, this.state.stamp_settings.bg_img);
+        await this.uploadImageAsync("org_stamp/stampbg" + this.state.uid, this.state.stamp_settings.stamp_bg);
+        await this.uploadImageAsync("org_stamp/stamp" + this.state.uid, this.state.stamp_settings.stamp_img);
+
+        await this.setState({creatingMessage: "Skapar ditt org konto... \n Glöm inte du kan ändra inställningar i efterhand ☻"})
         await this.settingsConfirm();
         await firebase.database()
             .ref("organisations")
@@ -619,12 +905,13 @@ export default class OrgRegister extends Component {
                 creating: null,
                 creatingMessage: null,
                 err: null,
-                screen: null
+                screen: null,
+                stamp_done: null,
+                showAddRewards: null,
             })
 
         this.setState({creatingMessage: "Perfekt! Nu ska vi logga in!"})
         setTimeout(() => {
-
             global.organisations[this.state.uid] = new Organisation({
                 ...this.state,
                 stats: {done: 0, stamps: 0},

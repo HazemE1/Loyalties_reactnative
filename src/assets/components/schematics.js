@@ -35,7 +35,14 @@ export function getColorScheme() {
         return cs.light;
 }
 
-const statusBarHeight = Platform.OS == "ios" ? 0 : Constants.statusBarHeight + 5;
+export function genUUID() {
+    return String(
+        Math.random() * 50 +
+        Date.now() + Math.random() * 50 +
+        Math.random() * 50).replace(",", "").replace("-", "").replace(".", "")
+}
+
+const statusBarHeight = Platform.OS === "ios" ? 0 : Constants.statusBarHeight + 5;
 
 export const styling = StyleSheet.create({
     wrapper: {

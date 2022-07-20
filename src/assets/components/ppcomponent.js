@@ -52,12 +52,12 @@ export default class PPComponent extends Component {
                     }}>
                         {global.user.selectedUser === "" ?
                             <Image ref={(im) => this.image = im}
-                                   style={{width: 90, height: 90, resizeMode: "contain", borderRadius: 200}}
+                                   style={{width: 90, height: 90, resizeMode: "stretch", borderRadius: 200}}
                                    source={{uri: firebase.auth().currentUser.photoURL}}/>
                             :
                             <Image ref={(im) => this.image = im}
-                                   style={{width: 90, height: 90, resizeMode: "contain", borderRadius: 200}}
-                                   source={{uri: global.organisations[global.user.selectedUser].img["_W"]}}/>
+                                   style={{width: 90, height: 90, resizeMode: "stretch", borderRadius: 200}}
+                                   source={{uri: global.organisations[global.user.selectedUser].img}}/>
                         }
                     </TouchableWithoutFeedback>
                 </View>
@@ -73,10 +73,11 @@ export default class PPComponent extends Component {
                         width: "150%",
                         opacity: this.state.animation.opacity
                     }}>
-                        {this.props.user.workPlaces.map((i) => {
+                        {global.user.workPlaces.map((i) => {
                             return (
                                 <TouchableWithoutFeedback key={i} onPress={() => {
                                     global.user.selectedUser = i
+                                    this.animateOut()
                                     this.props.navigation.navigate("OrgHome")
                                 }}
                                                           style={{marginTop: 10}}>
@@ -109,11 +110,11 @@ export default class PPComponent extends Component {
                             <Text style={{fontSize: 20, fontWeight: "bold", textAlign: "center"}}>AVBRYT</Text>
                         </TouchableWithoutFeedback>
                         <TouchableWithoutFeedback onPress={() => {
+                            this.animateOut()
+
                             this.props.navigation.navigate("home")
                             global.user.selectedUser = ""
-                            this.animateOut()
-                        }}
-                                                  style={{paddingTop: 10}}>
+                        }} style={{paddingTop: 10}}>
                             <Text style={{
                                 color: "blue",
                                 fontSize: 20,

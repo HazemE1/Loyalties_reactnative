@@ -39,13 +39,13 @@ export default class LoginScreen extends Component {
         this.signInUser.bind(this);
         this.registerUser.bind(this);
         this.isValidPNr.bind(this);
-        onAuthStateChanged(firebase.auth(), (user) => {
+        onAuthStateChanged(firebase.auth(), async (user) => {
                 if (!user) {
                     return;
                 }
                 const isNew = user.displayName === "" || user.displayName === null;
                 if (!isNew)
-                    this.signInUser();
+                    await this.signInUser();
 
 
             }
@@ -63,13 +63,16 @@ export default class LoginScreen extends Component {
     }
 
     async signInUser() {
-        global.user = await new User(firebase.auth().currentUser);
-        await global.user.loadUser(false).then(() => this.props.navigation.navigate("home"))
+        const ref = firebase.database().ref("users").child(firebase.auth().currentUser.uid);
+
+        await ref.once("value", (d) => {
+            new User(d.val());
+        })
+
+        this.props.navigation.navigate("home")
+
     }
 
-    switchCallBack(){
-        this.props.navigation.navigate("OrgHome", {user: global.user.selectedUser})
-    }
 
     registerUser() {
         this.props.navigation.navigate("register")

@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet} from 'react-native';
+import {SafeAreaView, StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {Pacifico_400Regular} from '@expo-google-fonts/pacifico';
@@ -13,8 +13,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import OrgHome from "./src/screens/org/OrgHome"
 import OrgRegister from "./src/screens/org/OrgRegister"
 import OrgSelect from './src/screens/org/OrgSelect';
-import CardView from "./src/assets/components/CardView";
-
+import Counter from "./src/assets/components/Counter";
 
 import firebase from "firebase/compat/app";
 import {initializeAuth} from "firebase/auth"
@@ -44,15 +43,32 @@ try {
 
 
 function Test() {
-    return (<CardView
-        bg_img={"https://besthqwallpapers.com/Uploads/14-3-2019/83327/thumb2-yellow-floral-pattern-4k-vintage-pattern-yellow-background-floral-patterns.jpg"}
-        done={3}
-        amount={10}
-        stamp_img={"https://www.onlygfx.com/wp-content/uploads/2018/04/completed-stamp-3.png"}
-        stamp_bg={"https://www.steelo.co.uk/wp-content/uploads/2018/04/Book-2-hour-delivery-slot-stamp-white-shadow2.png"}
-        title={"BOBLA"}
-        desc={"Ditt stämpelkort hos bobbla ser ut så här"}
-    /> );
+    return (
+        <SafeAreaView>
+            <Counter
+                max={10}
+                min={0}
+                arrow={{
+                    fontWeight: "bold",
+                    color: "black",
+                    fontSize: 50,
+                    margin: 10
+                }}
+                add={{
+                    color: "green"
+                }}
+                remove={{
+                    color: "red"
+                }}
+                counter={{
+                    fontWeight: "bold",
+                    color: "blue",
+                    fontSize: 100,
+
+                }
+                }/>
+        </SafeAreaView>
+    );
 }
 
 const Stack = createNativeStackNavigator();
@@ -94,10 +110,9 @@ export default class App extends React.Component {
         return (
             <NavigationContainer>
                 <Stack.Navigator
-                    initialRouteName='test'
+                    initialRouteName='login'
                     screenOptions={{
                         headerShown: false,
-
                     }}>
                     <Stack.Screen name="login" component={LoginScreen}/>
                     <Stack.Screen name="register" component={Register}/>

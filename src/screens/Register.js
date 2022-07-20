@@ -105,8 +105,8 @@ export default class Register extends Component {
             .child("profile_pictures")
             .child(firebase.auth().currentUser.uid);
         const snapshot = await ref.put(blob);
-        const remoteUri = snapshot.ref.getDownloadURL();
-
+        const remoteUri = await snapshot.ref.getDownloadURL();
+        console.log(remoteUri)
         this.setState({photoUrl: remoteUri})
         blob.close();
 
@@ -237,7 +237,7 @@ export default class Register extends Component {
                                 <View style={{
                                     ...styles.GenderSelector,
                                     backgroundColor: this.state.gender === "man" ? "rgba(0,255,0,0.2)" : "rgba(255,0,0,0)"
-                                    }}>
+                                }}>
                                     <Text style={styles.GenderSelectorText}>MAN</Text>
                                 </View>
                             </TouchableWithoutFeedback>
@@ -261,7 +261,7 @@ export default class Register extends Component {
                         <View style={{display: "flex", flexDirection: "row-reverse"}}>
                             <View>
                                 <TouchableWithoutFeedback onPressIn={() => {
-                                        this.setState({screen: "4", err: ""})
+                                    this.setState({screen: "4", err: ""})
                                 }}>
                                     <Text style={{
                                         ...styling.text,
@@ -341,9 +341,9 @@ export default class Register extends Component {
                         <View style={{display: "flex", flexDirection: "row-reverse"}}>
                             <View>
                                 <TouchableWithoutFeedback onPressIn={() => {
-                                    if (this.state.photoUrl === ""){
+                                    if (this.state.photoUrl === "") {
                                         this.setState({err: "Du måste välja en profilbild."})
-                                    }else {
+                                    } else {
                                         this.setState({screen: "5", err: ""})
 
                                     }
@@ -502,6 +502,8 @@ export default class Register extends Component {
         this.setState({creating: true})
         setTimeout(() => {
         }, 500)
+        this.setState({creatingMessage: "Laddar upp profilbild..."})
+        await this.uploadImageAsync();
         this.setState({creatingMessage: "Skapar din profil..."})
         await this.settingsConfirm();
         await firebase.auth().currentUser.updateEmail(this.state.mail);
@@ -514,13 +516,11 @@ export default class Register extends Component {
         await firebase.database()
             .ref("users")
             .child(firebase.auth().currentUser.uid)
-            .child("settings")
             .child("gender")
             .set(this.state.gender)
         await firebase.database()
             .ref("users")
             .child(firebase.auth().currentUser.uid)
-            .child("settings")
             .child("notifications")
             .set(this.state.notifications)
         await firebase.database()
@@ -531,9 +531,25 @@ export default class Register extends Component {
                 displayName: this.state.name,
                 photoURL: this.state.photoUrl
             })
-        this.setState({creatingMessage: "Laddar upp profilbild..."})
-        await this.uploadImageAsync();
-        global.user = new User(firebase.auth().currentUser, true)
+        await firebase.database()
+            .ref("users")
+            .child(firebase.auth().currentUser.uid)
+            .child("stats")
+            .set({
+                stamps:0,
+                done:0
+            })
+
+        new User({
+            stats: {
+                stamps: 0,
+                done: 0
+            },
+            stamps: {},
+            workPlaces: [],
+            notifications: this.state.notifications,
+            gender: this.state.gender,
+        })
         this.setState({creatingMessage: "Perfekt! Nu ska vi logga in!"})
         setTimeout(() => {
             this.props.navigation.navigate("home")

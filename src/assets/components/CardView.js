@@ -10,36 +10,56 @@ class CardView extends Component {
         this.state = {}
     }
 
+    /*
+    <CardView
+    done={0}
+    amount={5}
+    bg_img={"src"}
+    stamp_img={"Src"}
+    stamp_bg = {"src"}
+    title = {"test"}
+    desc = {"desc"}
+    />
+     */
 
     render() {
-        let done = this.props.done
-        let amount = this.props.amount
-        let bg_img = this.props.bg_img
-        let stamp_img = this.props.stamp_img
-        let stamp_bg = this.props.stamp_bg
-        let title = this.props.title
-        let desc = this.props.desc
+
+
+
         const list = []
-        for (let x = 0; x < amount; x++) {
-            list.push(
-                <ImageBackground imageStyle={{border: 10}}
-                                 resizeMode={"stretch"} source={{uri: stamp_bg}} key={x} style={styles.stamp}>
-                    {x < done ?
-                        <Image
-                            source={{uri: stamp_img}}
-                            style={{
-                                height: "110%",
-                                transform: [{rotate: (Math.random() * 45).toString() + 'deg'}]
-                            }}/>
-                        : console.log(x + "-" + done)}
-                </ImageBackground>)
+        for (let x = 0; x < this.props.amount; x++) {
+            if (this.props.rewards[x] === undefined)
+                list.push(
+                    <ImageBackground
+                        resizeMode={"stretch"} source={{uri: this.props.stamp_bg}} key={x} style={styles.stamp}>
+                        {x < this.props.done &&
+                            <Image
+                                source={{uri: this.props.stamp_img}}
+                                style={{
+                                    height: "110%",
+                                    transform: [{rotate: (Math.random() * 20).toString() + 'deg'}]
+                                }}/>}
+                    </ImageBackground>)
+            else
+                list.push(
+                    <ImageBackground
+                        resizeMode={"stretch"} source={{uri: this.props.rewards[x].photoUrl}} alt={""} key={x}
+                        style={styles.stamp}>
+                        {x < this.props.done &&
+                            <Image
+                                source={{uri: this.props.stamp_img}}
+                                style={{
+                                    height: "110%",
+                                    transform: [{rotate: (Math.random() * 45).toString() + 'deg'}]
+                                }}/>}
+                    </ImageBackground>)
         }
 
         return (
             <SafeAreaView>
                 <ImageBackground resizeMode={"stretch"}
                                  imageStyle={{width: Dimensions.get("screen").width, opacity: 0.5}}
-                                 source={{uri: bg_img}}
+                                 source={{uri: this.props.bg_img}}
                                  style={{
                                      width: "100%",
                                      backgroundColor: getColorScheme().bg_color,
@@ -52,13 +72,14 @@ class CardView extends Component {
                         fontWeight: "bold",
                         color: "white",
                         textAlign: "center",
-                    }}>{title}</Text>
+                    }}>{this.props.title}</Text>
                     <Text style={{
                         fontSize: 20,
                         color: "white",
                         textAlign: "center",
                         marginBottom: 20,
-                    }}>{desc}</Text>
+                        maxHeight: 60
+                    }}>{this.props.desc}</Text>
                     <View style={{
                         flexDirection: "row",
                         flexWrap: 1,

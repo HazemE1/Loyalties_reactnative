@@ -23,9 +23,15 @@ export default class Organisation {
                     6: "Du har avklarat en hel stämpelkort hos: " + this.name + " !!"
                 },
                 title: this.name,
-                reward: "10% på nästa meny"
+                rewards: {
+                    uuid: "",
+                    message: "",
+                    photoUrl: "",
+                    title: "",
+                }
             }
         }
+        this.userRewards = props.userRewards !== undefined ? props.userRewards : {}
 
     }
 }
