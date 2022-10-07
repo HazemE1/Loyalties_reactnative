@@ -67,13 +67,15 @@ class CardView extends Component {
                                      overflow: "hidden",
                                      padding: 10,
                                  }}>
-                    <Text style={{
+                    <Text adjustsFontSizeToFit={true}
+                          numberOfLines={1} style={{
                         fontSize: 50,
                         fontWeight: "bold",
                         color: "white",
                         textAlign: "center",
                     }}>{this.props.title}</Text>
-                    <Text style={{
+                    <Text adjustsFontSizeToFit={true}
+                          numberOfLines={3} style={{
                         fontSize: 20,
                         color: "white",
                         textAlign: "center",

@@ -11,6 +11,7 @@ import {
     View
 } from 'react-native';
 
+import firebaseConfig from "../assets/model/FirebaseConfig"
 import {getLogo, styling} from "../assets/components/schematics"
 import {Video} from 'expo-av';
 import {AntDesign, FontAwesome} from '@expo/vector-icons';
@@ -65,17 +66,17 @@ export default class LoginScreen extends Component {
     async signInUser() {
         const ref = firebase.database().ref("users").child(firebase.auth().currentUser.uid);
 
-        await ref.once("value", (d) => {
-            new User(d.val());
+        await ref.once("value", async (d) => {
+            await new User(d.val());
         })
 
-        this.props.navigation.navigate("home")
+        this.props["navigation"].navigate("home")
 
     }
 
 
     registerUser() {
-        this.props.navigation.navigate("register")
+        this.props["navigation"].navigate("register")
     }
 
     async verifyNumber() {
@@ -117,7 +118,7 @@ export default class LoginScreen extends Component {
                 <View style={{...styling.wrapper, backgroundColor: "rgba(0,0,0,1)", flex: 1}}>
                     <FirebaseRecaptchaVerifierModal ref={(r) => this.recaptchaVerifier = r}
                                                     attemptInvisibleVerification={true}
-                                                    firebaseConfig={global.firebaseConfig}/>
+                                                    firebaseConfig={firebaseConfig()}/>
                     <SafeAreaView/>
                     <Video shouldPlay={true} isLooping={true} isMuted={true} should resizeMode={"stretch"}
                            source={require("../assets/videos/login_bg.mp4")}

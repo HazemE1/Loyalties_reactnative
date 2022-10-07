@@ -78,7 +78,7 @@ export default class PPComponent extends Component {
                                 <TouchableWithoutFeedback key={i} onPress={() => {
                                     global.user.selectedUser = i
                                     this.animateOut()
-                                    this.props.navigation.navigate("OrgHome")
+                                    this.props["navigation"].navigate("OrgHome")
                                 }}
                                                           style={{marginTop: 10}}>
                                     <Text style={{
@@ -90,7 +90,7 @@ export default class PPComponent extends Component {
                         })}
 
                         <TouchableWithoutFeedback onPress={() => {
-                            this.props.navigation.navigate("OrgSelect")
+                            this.props["navigation"].navigate("OrgSelect")
                             this.animateOut()
                         }} style={{margin: 5}}>
                             <Text style={{color: "green", fontSize: 20, fontWeight: "bold", textAlign: "center"}}>NY
@@ -112,7 +112,7 @@ export default class PPComponent extends Component {
                         <TouchableWithoutFeedback onPress={() => {
                             this.animateOut()
 
-                            this.props.navigation.navigate("home")
+                            this.props["navigation"].navigate("home")
                             global.user.selectedUser = ""
                         }} style={{paddingTop: 10}}>
                             <Text style={{

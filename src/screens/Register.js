@@ -503,9 +503,11 @@ export default class Register extends Component {
         setTimeout(() => {
         }, 500)
         this.setState({creatingMessage: "Laddar upp profilbild..."})
-        await this.uploadImageAsync();
+        await this.uploadImageAsync().catch(e => {
+            console.log(e)
+        });
         this.setState({creatingMessage: "Skapar din profil..."})
-        await this.settingsConfirm();
+        //await this.settingsConfirm();
         await firebase.auth().currentUser.updateEmail(this.state.mail);
         await firebase.auth().currentUser.updateProfile({
             displayName: this.state.name,
@@ -552,7 +554,7 @@ export default class Register extends Component {
         })
         this.setState({creatingMessage: "Perfekt! Nu ska vi logga in!"})
         setTimeout(() => {
-            this.props.navigation.navigate("home")
+            this.props["navigation"].navigate("home")
         }, 500)
     }
 }

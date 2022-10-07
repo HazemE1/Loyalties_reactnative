@@ -23,7 +23,6 @@ export default class Home extends Component {
             showQr: false,
             hasLoaded: false
         };
-        console.log(global.user)
     }
 
 
@@ -37,7 +36,7 @@ export default class Home extends Component {
 
     select(selection) {
         if (selection === "new_org") {
-            this.props.navigation.navigate("new_org")
+            this.props["navigation"].navigate("new_org")
         }
     }
 
@@ -124,8 +123,7 @@ export default class Home extends Component {
                                 borderRadius: 100,
                                 backgroundColor: "white"
                             }}>
-                                <PPComponent navigation={this.props.navigation} select={this.select}
-                                             user={global.user}/>
+                                <PPComponent navigation={this.props["navigation"]} select={this.select}/>
                             </View>
                         </View>
                         <View style={{
@@ -170,7 +168,7 @@ export default class Home extends Component {
                                     color: getColorScheme().text_color,
                                     fontSize: 20,
                                     fontWeight: "bold"
-                                }}>SÖK</Text>
+                                }}>HITTA</Text>
                             </View>
                         </TouchableOpacity>
                     </View>
