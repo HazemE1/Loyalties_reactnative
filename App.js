@@ -128,7 +128,7 @@ export default class App extends React.Component {
         return (
             <NavigationContainer>
                 <Stack.Navigator
-                    initialRouteName='OrgSelect'
+                    initialRouteName='login'
                     screenOptions={{
                         headerShown: false,
                         gestureEnabled: false

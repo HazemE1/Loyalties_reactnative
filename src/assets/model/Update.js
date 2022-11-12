@@ -16,7 +16,6 @@ class Update extends Component {
         }
         this.showEdit = this.props.showEdit
 
-
     }
 
     startAnimation = () => {
@@ -42,7 +41,13 @@ class Update extends Component {
         }
     }
 
+    componentDidMount() {
+        if (this.props.fullScreen === true)
+            this.startAnimation()
+    }
+
     render() {
+
         const widthInterpolate = this.state.animation.interpolate({
             inputRange: [0, 1],
             outputRange: ["33%", "100%"],
@@ -57,7 +62,7 @@ class Update extends Component {
                 width: widthInterpolate,
                 maxHeight: heightInterpolate, overflow: "hidden"
             }}>
-                <TouchableWithoutFeedback onPress={() => this.startAnimation()}>
+                <TouchableWithoutFeedback onPress={() => this.props.pressed()}>
                     <View style={{
                         backgroundColor: getColorScheme().bg_color,
                         borderRadius: 10,
@@ -84,8 +89,9 @@ class Update extends Component {
                                 </TouchableWithoutFeedback>
                             </View>
                         }
-                        <Image style={{width: "100%", height: 100, resizeMode: "contain", borderRadius: 10}}
-                               source={{uri: this.state.photoUrl}}/>
+                        <Image
+                            style={{width: "100%", height:300, borderRadius: 10}}
+                            source={{uri: this.state.photoUrl}}/>
                         <Text adjustsFontSizeToFit={true}
                               numberOfLines={1} style={{
                             fontWeight: "bold",

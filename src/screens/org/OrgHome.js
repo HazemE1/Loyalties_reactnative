@@ -42,7 +42,9 @@ export default class OrgHome extends Component {
             showLoading: {
                 show: false,
                 message: "dasfasfasfasfasfs"
-            }
+            },
+            currentScreen: "coworkers",
+            newsFullscreen: true,
         };
         this.organisation = global.organisations[global.user.selectedUser]
         this.user = global.user;
@@ -194,6 +196,121 @@ export default class OrgHome extends Component {
         }
     };
 
+    switchScreen() {
+        switch (this.state.currentScreen.toString().toLowerCase()) {
+            case "coworkers":
+                return this.screenNews()
+            case "coworkers":
+                return this.screenCoworkers()
+        }
+    }
+
+    screenStats() {
+
+    }
+
+    screenCoworkers() {
+        return (
+
+            <View>
+                <View style={{
+                    zIndex: 1,
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginTop: 40,
+                }}>
+                    <Text style={{
+                        ...styling.shadow,
+                        textAlign: "center",
+                        margin: 10,
+                        color: getColorScheme().text_color,
+                        fontSize: 20,
+                        fontWeight: "bold",
+                    }}>MEDARBETARE <Ionicons name="people" size={20}/></Text>
+                </View>
+
+            </View>
+        )
+    }
+
+    screenNews() {
+        return (<View style={{maxHeight: "80%"}}>
+            <View>
+                <TouchableOpacity onPress={() => {
+                }}>
+                    <View style={{
+                        zIndex: 1,
+                        flexDirection: "row",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        marginTop: 40,
+                    }}>
+                        <Text style={{
+                            ...styling.shadow,
+                            textAlign: "center",
+                            margin: 10,
+                            color: getColorScheme().text_color,
+                            fontSize: 20,
+                            fontWeight: "bold",
+                        }}>NYHETER <Ionicons name="newspaper" size={20}/></Text>
+                    </View>
+                </TouchableOpacity>
+            </View>
+            <View style={{height: "70%"}}>
+                <ScrollView
+                    contentContainerStyle={{
+                        flexWrap: 1,
+                        flexDirection: "row"
+                    }}>
+                    {Object.values(this.organisation.updates).map(v => {
+                        return <Update key={v.uuid}
+                                       uuid={v.uuid}
+                                       title={v.title}
+                                       desc={v.desc}
+                                       photoUrl={v.photoUrl}
+                                       showEdit={true}
+                                       trash={(uuid) => this.removeNew(uuid)}
+                                       edit={(uuid) => this.editNew(uuid)}
+                                       fullScreen={this.state.newsFullscreen}
+                                       pressed={() => {
+                                           this.setState({
+                                               newsFullscreen: !this.state.newsFullscreen
+                                           })
+                                       }
+                                       }
+
+                        />
+                    })}
+                </ScrollView>
+                <View style={{
+                    padding: 10,
+                    borderColor: "white",
+                    borderWidth: 1.5,
+                    borderRadius: "50%",
+                    width: 70,
+                    height: 70,
+                    position: "absolute",
+                    bottom: 10,
+                    left: "44%",
+                    justifyContent: "center",
+                    backgroundColor: "rgba(0,0,0,0.8)"
+                }}>
+                    <TouchableWithoutFeedback onPress={() => {
+                        this.setState({
+                            showAddNew: true
+                        })
+                    }}>
+                        <Text style={{
+                            color: "white",
+                            textAlign: "center"
+                        }}>SKAPA NYHET</Text>
+                    </TouchableWithoutFeedback>
+                </View>
+            </View>
+        </View>)
+    }
+
     render() {
 
 
@@ -201,7 +318,12 @@ export default class OrgHome extends Component {
             return <SafeAreaView>
                 <View style={{height: "100%", justifyContent: "center", alignItems: "center"}}>
                     <ActivityIndicator size={"large"} color={"green"}/>
-                    <Text style={{color: "black", fontSize: 20, fontWeight: "bold", margin: 5}}>{this.state.addNew.uuid === "asd" ?
+                    <Text style={{
+                        color: "black",
+                        fontSize: 20,
+                        fontWeight: "bold",
+                        margin: 5
+                    }}>{this.state.addNew.uuid === "asd" ?
                         "Skapar din nyhet"
                         :
                         "Redigerar din nyhet"
@@ -395,74 +517,9 @@ export default class OrgHome extends Component {
                                 </View>
                             </View>
                         </View>
-                        <View>
-                            <TouchableOpacity onPress={() => {
-                            }}>
-                                <View style={{
-                                    zIndex: 1,
-                                    flexDirection: "row",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    marginTop: 40,
-                                }}>
 
-                                    <Text style={{
-                                        ...styling.shadow,
-                                        textAlign: "center",
-                                        margin: 10,
-                                        color: getColorScheme().text_color,
-                                        fontSize: 20,
-                                        fontWeight: "bold",
-                                    }}>NYHETER <Ionicons name="newspaper" size={20}/></Text>
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-
-
-                        <ScrollView
-                            style={{height: "100%"}}
-                            contentContainerStyle={{
-                                display: "flex",
-                                flexWrap: 1,
-                                flexDirection: "row"
-                            }}>
-                            {Object.values(this.organisation.updates).map(v => {
-                                return <Update key={v.uuid}
-                                               uuid={v.uuid}
-                                               title={v.title}
-                                               desc={v.desc}
-                                               photoUrl={v.photoUrl}
-                                               showEdit={true}
-                                               trash={(uuid) => this.removeNew(uuid)}
-                                               edit={(uuid) => this.editNew(uuid)}
-
-                                />
-                            })
-                            }
-                        </ScrollView>
-                        <View style={{
-                            padding: 10,
-                            borderColor: "white",
-                            borderWidth: 1.5,
-                            borderRadius: "50%",
-                            width: 70,
-                            height: 70,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            alignSelf: "flex-end"
-                        }}>
-                            <TouchableWithoutFeedback onPress={() => {
-                                this.setState({
-                                    showAddNew: true
-                                })
-                            }}>
-                                <Text style={{
-                                    color: "white",
-                                    textAlign: "center"
-                                }}>SKAPA NYHET</Text>
-                            </TouchableWithoutFeedback>
-                        </View>
-                        <View style={{alignItems: "center", justifyContent: "center"}}>
+                        {this.switchScreen()}
+                        <View style={{flex: 1, alignItems: "center", justifyContent: "flex-end"}}>
                             <TouchableWithoutFeedback onPress={() => this.toggleQR()}>
                                 {getLogo({
 

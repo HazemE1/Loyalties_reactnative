@@ -3,9 +3,11 @@
     "name": "loyalty",
     "slug": "loyalty",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
     "assetBundlePatterns": [
       "**/*"
     ]
-  },
-  "name": "loyalty"
+  }
 }
